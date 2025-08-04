@@ -1,0 +1,1154 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Car Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        dark: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .logo-light {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+        }
+        .logo-dark {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+        }
+        .transition-theme {
+            transition: all 0.3s ease;
+        }
+        .table-hover:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .dark .table-hover:hover {
+            background-color: rgba(96, 165, 250, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-dark-900 transition-theme">
+
+<!-- @COMPONENT: AuthenticationProvider [Manages login state and token validation] -->
+<!-- @STATE: isAuthenticated:boolean = true, user:object = mockUser, theme:string = 'light', language:string = 'en' -->
+
+<!-- Login Page (Hidden when authenticated) -->
+<div id="loginPage" class="hidden min-h-screen flex items-center justify-center bg-gray-50 dark:bg-dark-900 py-12 px-4 sm:px-6 lg:px-8">
+    <!-- @COMPONENT: LoginForm [Handles authentication with token validation] -->
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="logo-container mx-auto dark:logo-light logo-dark"></div>
+            <h2 class="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                Admin Dashboard Access
+            </p>
+        </div>
+        <form class="mt-8 space-y-6" data-event="submit:handleLogin">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <input type="email" required class="relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-t-md bg-white dark:bg-dark-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Email address" data-bind="loginForm.email">
+                </div>
+                <div>
+                    <input type="password" required class="relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-b-md bg-white dark:bg-dark-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" placeholder="Password" data-bind="loginForm.password">
+                </div>
+            </div>
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+                    Sign in
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- @END_COMPONENT: LoginForm -->
+
+<!-- Main Dashboard (Visible when authenticated) -->
+<div id="mainDashboard" class="min-h-screen bg-gray-50 dark:bg-dark-900">
+    
+    <!-- @COMPONENT: Sidebar [Navigation menu with role-based access control] -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out" id="sidebar">
+        <div class="flex items-center justify-center h-16 px-4 bg-primary-600 dark:bg-primary-700">
+            <div class="logo-container dark:logo-light logo-dark"></div>
+            <h1 class="ml-3 text-xl font-bold text-white">CarAdmin</h1>
+        </div>
+        
+        <nav class="mt-8">
+            <div class="px-4">
+                <!-- @MAP: menuItems.map(item => ( -->
+                <a href="#dashboard" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 bg-primary-50 dark:bg-primary-900/20 border-r-2 border-primary-600 rounded-l-md mb-1" data-bind="activeMenu">
+                    <i class="fas fa-tachometer-alt mr-3 text-primary-600 dark:text-primary-400"></i>
+                    Dashboard
+                </a>
+                <a href="#cars" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-md mb-1">
+                    <i class="fas fa-car mr-3 text-gray-400"></i>
+                    All Cars
+                </a>
+                <a href="#users" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-md mb-1">
+                    <i class="fas fa-users mr-3 text-gray-400"></i>
+                    All Users
+                </a>
+                <a href="#reports" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-md mb-1">
+                    <i class="fas fa-chart-bar mr-3 text-gray-400"></i>
+                    Reports
+                </a>
+                <a href="#profile" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-md mb-1">
+                    <i class="fas fa-user mr-3 text-gray-400"></i>
+                    Profile
+                </a>
+                <!-- @END_MAP )) -->
+            </div>
+        </nav>
+    </div>
+    <!-- @END_COMPONENT: Sidebar -->
+
+    <!-- @COMPONENT: TopHeader [Contains language switcher, theme toggle, and user menu] -->
+    <div class="lg:pl-64">
+        <div class="sticky top-0 z-40 lg:mx-auto bg-white dark:bg-dark-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <button class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700" data-event="click:toggleSidebar">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h2 class="ml-4 text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- @COMPONENT: LanguageSelector [i18next integration] -->
+                        <div class="relative">
+                            <select class="appearance-none bg-white dark:bg-dark-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500" data-bind="selectedLanguage">
+                                <option value="en">EN</option>
+                                <option value="uz">UZ</option>
+                                <option value="ru">RU</option>
+                            </select>
+                        </div>
+                        <!-- @END_COMPONENT: LanguageSelector -->
+                        
+                        <!-- @COMPONENT: ThemeToggle [Light/Dark mode switcher] -->
+                        <button class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700" data-event="click:toggleTheme">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:inline"></i>
+                        </button>
+                        <!-- @END_COMPONENT: ThemeToggle -->
+                        
+                        <!-- @COMPONENT: UserMenu [Profile dropdown with logout] -->
+                        <div class="relative">
+                            <button class="flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700" data-event="click:toggleUserMenu">
+                                <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User avatar">
+                                <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300" data-bind="user.name">John Admin</span>
+                                <i class="ml-2 fas fa-chevron-down text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- @END_COMPONENT: UserMenu -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: TopHeader -->
+
+    <!-- Main Content Area -->
+    <div class="lg:pl-64">
+        <main class="py-6">
+            <div class="mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <!-- Dashboard Overview Page -->
+                <div id="dashboardPage" class="space-y-6">
+                    <!-- @COMPONENT: StatsCards [Key metrics overview] -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- @MAP: statsData.map(stat => ( -->
+                        <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-car text-primary-600 dark:text-primary-400 text-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Cars</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" data-bind="stats.totalCars">1,247</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-users text-green-600 dark:text-green-400 text-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Users</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" data-bind="stats.activeUsers">8,942</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Reports</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" data-bind="stats.pendingReports">23</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-red-600 dark:text-red-400 text-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" data-bind="stats.revenue">$127,890</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    <!-- @END_COMPONENT: StatsCards -->
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Recent Activity</h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- @MAP: recentActivity.map(activity => ( -->
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-2 h-2 bg-primary-600 rounded-full"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-900 dark:text-white">New car registered: <span class="font-medium">Toyota Camry 2024</span></p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">2 minutes ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-2 h-2 bg-green-600 rounded-full"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-900 dark:text-white">User account activated: <span class="font-medium">jane.doe@example.com</span></p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">15 minutes ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-2 h-2 bg-yellow-600 rounded-full"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm text-gray-900 dark:text-white">New report submitted: <span class="font-medium">Accident Report #1247</span></p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">1 hour ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Cars Page -->
+                <div id="carsPage" class="hidden space-y-6">
+                    <!-- @COMPONENT: CarsPageHeader [Search, filters, and actions] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">All Cars</h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Manage your fleet of vehicles</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" data-event="click:openMapView">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>
+                                    View on Map
+                                </button>
+                                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" data-event="click:openCarRegistrationForm">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add New Car
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filters and Search -->
+                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <input type="text" placeholder="Search cars..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="carSearch">
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="brandFilter">
+                                    <option value="">All Brands</option>
+                                    <option value="toyota">Toyota</option>
+                                    <option value="honda">Honda</option>
+                                    <option value="ford">Ford</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500" data-event="click:clearFilters">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: CarsPageHeader -->
+
+                    <!-- @COMPONENT: CarsTable [Sortable table with car data] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-dark-900">
+                                    <tr>
+                                        <!-- @MAP: tableColumns.map(column => ( -->
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800" data-event="click:sortBy" data-column="id">
+                                            ID <i class="fas fa-sort ml-1"></i>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800" data-event="click:sortBy" data-column="name">
+                                            Car Name <i class="fas fa-sort ml-1"></i>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Owner
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800" data-event="click:sortBy" data-column="year">
+                                            Year <i class="fas fa-sort ml-1"></i>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Location
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                        <!-- @END_MAP )) -->
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- @MAP: filteredCars.map(car => ( -->
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" data-bind="car.id">#CAR001</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- Car image placeholder using Unsplash -->
+                                                <img class="h-10 w-10 rounded-lg object-cover" src="https://images.unsplash.com/photo-1549924231-f129b911e442?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Toyota Camry 2024">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white" data-bind="car.name">Toyota Camry 2024</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400" data-bind="car.plate">ABC-123</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400" data-bind="car.status">Active</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white" data-bind="car.owner">John Smith</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white" data-bind="car.year">2024</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-bind="car.location">New York, NY</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300" data-event="click:editCar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300" data-event="click:viewOnMap">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </button>
+                                            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" data-event="click:deleteCar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- Additional rows with different data -->
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">#CAR002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- Honda Civic image -->
+                                                <img class="h-10 w-10 rounded-lg object-cover" src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Honda Civic 2023">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Honda Civic 2023</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">XYZ-456</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400">Maintenance</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Sarah Johnson</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Los Angeles, CA</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </button>
+                                            <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- @COMPONENT: Pagination [For large datasets] -->
+                        <div class="bg-white dark:bg-dark-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                        Previous
+                                    </button>
+                                    <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                        Next
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">97</span> results
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                            <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                                1
+                                            </button>
+                                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-primary-50 dark:bg-primary-900/20 text-sm font-medium text-primary-600 dark:text-primary-400">
+                                                2
+                                            </button>
+                                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                                3
+                                            </button>
+                                            <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: Pagination -->
+                    </div>
+                    <!-- @END_COMPONENT: CarsTable -->
+                </div>
+
+                <!-- All Users Page -->
+                <div id="usersPage" class="hidden space-y-6">
+                    <!-- @COMPONENT: UsersPageHeader [User management interface] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">All Users</h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Manage user accounts and permissions</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-user-plus mr-2"></i>
+                                    Add New User
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- User Filters -->
+                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <input type="text" placeholder="Search users..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="suspended">Suspended</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">All Roles</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">User</option>
+                                    <option value="driver">Driver</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: UsersPageHeader -->
+
+                    <!-- @COMPONENT: UsersTable [User management with action buttons] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-dark-900">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Join Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Active</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- @MAP: users.map(user => ( -->
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- User avatar from Unsplash -->
+                                                <img class="h-10 w-10 rounded-full" src="https://pixabay.com/get/g71d867afab81a4468e6ebf2dc63a792b7683def1c3ee775958012d76e5237cdfca110a598dc1b51e843f4a993a2a0fc35c042470d0694db186a380f0954c00b4_1280.jpg" alt="User avatar">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Jane Cooper</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">jane.cooper@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">Active</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">User</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Jan 15, 2024</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">2 hours ago</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" data-event="click:activateUser" data-implementation="Should toggle user activation status">
+                                                    <i class="fas fa-check mr-1"></i>
+                                                    Activate
+                                                </button>
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" data-event="click:deactivateUser" data-implementation="Should deactivate user account">
+                                                    <i class="fas fa-pause mr-1"></i>
+                                                    Deactivate
+                                                </button>
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" data-event="click:deleteUser" data-implementation="Should delete user account with confirmation">
+                                                    <i class="fas fa-trash mr-1"></i>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- Another user avatar -->
+                                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User avatar">
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Tom Cook</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">tom.cook@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">Inactive</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Driver</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Dec 22, 2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">3 days ago</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                    <i class="fas fa-check mr-1"></i>
+                                                    Activate
+                                                </button>
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 opacity-50 cursor-not-allowed" disabled>
+                                                    <i class="fas fa-pause mr-1"></i>
+                                                    Deactivate
+                                                </button>
+                                                <button class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                    <i class="fas fa-trash mr-1"></i>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: UsersTable -->
+                </div>
+
+                <!-- Reports Page -->
+                <div id="reportsPage" class="hidden space-y-6">
+                    <!-- @COMPONENT: ReportsPageHeader [Report management interface] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Reports</h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">View and manage user-submitted reports</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Export Reports
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Filters -->
+                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div>
+                                <input type="text" placeholder="Search reports..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">All Types</option>
+                                    <option value="accident">Accident</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="complaint">Complaint</option>
+                                    <option value="feedback">Feedback</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="reviewed">Reviewed</option>
+                                    <option value="resolved">Resolved</option>
+                                </select>
+                            </div>
+                            <div>
+                                <input type="date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
+                                <button class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ReportsPageHeader -->
+
+                    <!-- @COMPONENT: ReportsTable [Detailed report listings] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-dark-900">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Report ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- @MAP: reports.map(report => ( -->
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">#RPT001</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- User avatar for report -->
+                                                <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User avatar">
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Michael Chen</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">m.chen@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">Accident</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                                            Minor collision at intersection, no injuries reported. Vehicle needs inspection...
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Jan 20, 2024</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400">Pending</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300" data-event="click:viewReport" data-implementation="Should open detailed report view">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300" data-event="click:resolveReport" data-implementation="Should mark report as resolved">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" data-event="click:deleteReport" data-implementation="Should delete report with confirmation">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-hover transition-theme">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">#RPT002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <!-- Another user avatar -->
+                                                <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User avatar">
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Lisa Parker</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">l.parker@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400">Maintenance</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                                            Regular maintenance due for vehicle. Oil change and brake inspection needed...
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Jan 18, 2024</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">Resolved</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 opacity-50 cursor-not-allowed" disabled>
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ReportsTable -->
+                </div>
+
+                <!-- Profile Page -->
+                <div id="profilePage" class="hidden space-y-6">
+                    <!-- @COMPONENT: ProfileManagement [User profile editing interface] -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Profile Settings</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage your personal information and preferences</p>
+                        </div>
+                        
+                        <div class="p-6">
+                            <form class="space-y-6" data-event="submit:updateProfile" data-implementation="Should validate and update user profile">
+                                <!-- Profile Picture Section -->
+                                <div class="flex items-center space-x-6">
+                                    <!-- Current profile picture -->
+                                    <img class="h-24 w-24 rounded-full object-cover" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Current profile picture">
+                                    <div>
+                                        <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                            <i class="fas fa-camera mr-2"></i>
+                                            Change Photo
+                                        </button>
+                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">JPG, GIF or PNG. 1MB max.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Information -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                                        <input type="text" value="John" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.firstName">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                                        <input type="text" value="Admin" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.lastName">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                                        <input type="email" value="john.admin@example.com" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.email">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+                                        <input type="tel" value="+1 (555) 123-4567" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.phone">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
+                                        <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Tell us about yourself..." data-bind="profile.bio">System administrator with 5+ years of experience in car fleet management and user administration.</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Preferences Section -->
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Preferences</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preferred Language</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.language">
+                                                <option value="en">English</option>
+                                                <option value="uz">Uzbek</option>
+                                                <option value="ru">Russian</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Zone</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-bind="profile.timezone">
+                                                <option value="UTC-5">Eastern Time (UTC-5)</option>
+                                                <option value="UTC-8">Pacific Time (UTC-8)</option>
+                                                <option value="UTC+5">Uzbekistan Time (UTC+5)</option>
+                                                <option value="UTC+3">Moscow Time (UTC+3)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Security Section -->
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Security</h3>
+                                    <div class="space-y-4">
+                                        <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" data-event="click:changePassword" data-implementation="Should open password change modal">
+                                            <i class="fas fa-key mr-2"></i>
+                                            Change Password
+                                        </button>
+                                        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-900 rounded-lg">
+                                            <div>
+                                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Two-Factor Authentication</h4>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security to your account</p>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <button type="button" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 dark:bg-gray-700 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" data-event="click:toggle2FA" data-implementation="Should toggle 2FA setting">
+                                                    <span class="sr-only">Enable two-factor authentication</span>
+                                                    <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ProfileManagement -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- @COMPONENT: CarRegistrationModal [Form for adding new cars] -->
+<div id="carRegistrationModal" class="fixed inset-0 z-50 overflow-y-auto hidden" data-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" data-event="click:closeModal"></div>
+        <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white dark:bg-dark-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Register New Car</h3>
+                        <form class="space-y-4" data-event="submit:registerCar" data-implementation="Should validate and submit car registration">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Car Make</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Toyota">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Camry">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+                                    <input type="number" required min="1900" max="2030" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="2024">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">License Plate</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="ABC-123">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner Name</label>
+                                <input type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="John Smith">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                                <select required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-dark-900 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="submit" form="carRegistrationForm" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Register Car
+                </button>
+                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" data-event="click:closeModal">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- @END_COMPONENT: CarRegistrationModal -->
+
+<!-- @COMPONENT: MapModal [Full-screen map view for car locations] -->
+<div id="mapModal" class="fixed inset-0 z-50 overflow-hidden hidden" data-modal="true">
+    <div class="absolute inset-0 bg-gray-900 bg-opacity-75">
+        <div class="relative h-full">
+            <div class="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Car Locations - Real-time Map</h3>
+                <button class="text-white hover:text-gray-300 text-2xl" data-event="click:closeMapModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="h-full pt-16">
+                <!-- @FUNCTIONALITY: This map container should implement Leaflet or Google Maps integration -->
+                <div id="mapContainer" class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <div class="text-center text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-map-marked-alt text-6xl mb-4"></i>
+                        <h4 class="text-xl font-semibold mb-2">Interactive Map</h4>
+                        <p class="text-sm">Car locations will be displayed here using Leaflet.js</p>
+                        <p class="text-xs mt-2 opacity-75">Implementation: Integrate with Leaflet or Google Maps API</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- @END_COMPONENT: MapModal -->
+
+<!-- @COMPONENT: ToastNotification [Success/Error messages] -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2">
+    <!-- Toast notifications will be dynamically inserted here -->
+    <!-- Example toast structure for demonstration -->
+    <div class="hidden bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center" data-toast="success">
+        <i class="fas fa-check-circle mr-3"></i>
+        <span class="toast-message">Operation completed successfully!</span>
+        <button class="ml-4 text-white hover:text-gray-200" data-event="click:dismissToast">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+<!-- @END_COMPONENT: ToastNotification -->
+
+<script>
+(function() {
+    // TODO: Implement React Context for authentication, theme, and language state
+    // TODO: Implement i18next for multilingual support
+    // TODO: Implement react-toastify for notifications
+    // TODO: Implement Leaflet.js for map functionality
+    // TODO: Connect to real API endpoints for data fetching
+    
+    // Mock state management for demonstration
+    let currentPage = 'dashboard';
+    let isAuthenticated = true; // Set to false to show login page
+    let currentTheme = localStorage.getItem('theme') || 'light';
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    // Initialize theme
+    function initTheme() {
+        if (currentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+
+    // Show appropriate page based on authentication
+    function initApp() {
+        const loginPage = document.getElementById('loginPage');
+        const mainDashboard = document.getElementById('mainDashboard');
+        
+        if (isAuthenticated) {
+            loginPage.classList.add('hidden');
+            mainDashboard.classList.remove('hidden');
+            showPage(currentPage);
+        } else {
+            loginPage.classList.remove('hidden');
+            mainDashboard.classList.add('hidden');
+        }
+    }
+
+    // Navigate between pages
+    function showPage(pageId) {
+        // Hide all pages
+        const pages = ['dashboardPage', 'carsPage', 'usersPage', 'reportsPage', 'profilePage'];
+        pages.forEach(id => {
+            const page = document.getElementById(id);
+            if (page) page.classList.add('hidden');
+        });
+
+        // Show selected page
+        const targetPage = document.getElementById(pageId + 'Page');
+        if (targetPage) {
+            targetPage.classList.remove('hidden');
+            currentPage = pageId;
+            
+            // Update page title
+            const titleElement = document.querySelector('h2');
+            if (titleElement) {
+                titleElement.textContent = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+            }
+        }
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', currentTheme);
+        initTheme();
+    }
+
+    // Toggle sidebar on mobile
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('-translate-x-full');
+    }
+
+    // Show/hide modals
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        initTheme();
+        initApp();
+
+        // Navigation clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('[href^="#"]')) {
+                e.preventDefault();
+                const href = e.target.closest('[href^="#"]').getAttribute('href');
+                const pageId = href.substring(1);
+                showPage(pageId);
+            }
+
+            // Theme toggle
+            if (e.target.closest('[data-event*="toggleTheme"]')) {
+                toggleTheme();
+            }
+
+            // Sidebar toggle
+            if (e.target.closest('[data-event*="toggleSidebar"]')) {
+                toggleSidebar();
+            }
+
+            // Modal controls
+            if (e.target.closest('[data-event*="openCarRegistrationForm"]')) {
+                showModal('carRegistrationModal');
+            }
+
+            if (e.target.closest('[data-event*="openMapView"]')) {
+                showModal('mapModal');
+            }
+
+            if (e.target.closest('[data-event*="closeModal"]')) {
+                hideModal('carRegistrationModal');
+            }
+
+            if (e.target.closest('[data-event*="closeMapModal"]')) {
+                hideModal('mapModal');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = e.target.closest('[data-event*="toggleSidebar"]');
+            
+            if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !sidebarToggle) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    });
+
+    // Simulated authentication check
+    // TODO: Replace with real token validation
+    function checkAuthToken() {
+        const token = localStorage.getItem('authToken');
+        if (!token || isTokenExpired(token)) {
+            isAuthenticated = false;
+            localStorage.removeItem('authToken');
+            initApp();
+        }
+    }
+
+    function isTokenExpired(token) {
+        // TODO: Implement real token expiration check
+        return false;
+    }
+
+    // Check auth status periodically
+    setInterval(checkAuthToken, 60000); // Check every minute
+})();
+</script>
+
+</body>
+</html>

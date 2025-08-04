@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(217, 91%, 60%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(217, 91%, 60%);
+  --radius: 0.5rem;
+  
+  /* Custom colors for car admin dashboard */
+  --admin-primary: hsl(217, 91%, 60%);
+  --admin-primary-hover: hsl(217, 91%, 55%);
+  --admin-success: hsl(142, 71%, 45%);
+  --admin-warning: hsl(45, 93%, 47%);
+  --admin-danger: hsl(0, 84%, 60%);
+  --admin-info: hsl(199, 89%, 48%);
+  
+  /* Sidebar colors */
+  --sidebar-bg: hsl(0, 0%, 100%);
+  --sidebar-border: hsl(20, 5.9%, 90%);
+  --sidebar-item-hover: hsl(60, 4.8%, 95.9%);
+  --sidebar-item-active: hsl(217, 91%, 95%);
+  
+  /* Table colors */
+  --table-header-bg: hsl(60, 4.8%, 97%);
+  --table-row-hover: hsla(217, 91%, 60%, 0.05);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(217, 91%, 60%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(217, 91%, 60%);
+  
+  /* Dark mode custom colors */
+  --admin-primary: hsl(217, 91%, 60%);
+  --admin-primary-hover: hsl(217, 91%, 65%);
+  --admin-success: hsl(142, 71%, 45%);
+  --admin-warning: hsl(45, 93%, 47%);
+  --admin-danger: hsl(0, 84%, 60%);
+  --admin-info: hsl(199, 89%, 48%);
+  
+  /* Dark sidebar colors */
+  --sidebar-bg: hsl(240, 10%, 3.9%);
+  --sidebar-border: hsl(240, 3.7%, 15.9%);
+  --sidebar-item-hover: hsl(240, 3.7%, 15.9%);
+  --sidebar-item-active: hsla(217, 91%, 60%, 0.15);
+  
+  /* Dark table colors */
+  --table-header-bg: hsl(240, 3.7%, 8%);
+  --table-row-hover: hsla(217, 91%, 60%, 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .admin-sidebar {
+    @apply bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+  }
+  
+  .admin-sidebar-item {
+    @apply text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200;
+    &:hover {
+      background-color: var(--sidebar-item-hover);
+    }
+    
+    &.active {
+      @apply text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-600;
+      background-color: var(--sidebar-item-active);
+      color: var(--admin-primary);
+    }
+  }
+  
+  .admin-table {
+    &-header {
+      background-color: var(--table-header-bg);
+    }
+    
+    &-row:hover {
+      background-color: var(--table-row-hover);
+    }
+  }
+  
+  .status-badge {
+    &.active {
+      @apply bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400;
+    }
+    
+    &.inactive {
+      @apply bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400;
+    }
+    
+    &.maintenance {
+      @apply bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400;
+    }
+    
+    &.pending {
+      @apply bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400;
+    }
+    
+    &.reviewed {
+      @apply bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400;
+    }
+    
+    &.resolved {
+      @apply bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400;
+    }
+    
+    &.suspended {
+      @apply bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-400;
+    }
+  }
+  
+  .transition-theme {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .logo-container {
+    @apply w-10 h-10 bg-contain bg-no-repeat bg-center;
+  }
+}
+
+@layer utilities {
+  .text-admin-primary {
+    color: var(--admin-primary);
+  }
+  
+  .bg-admin-primary {
+    background-color: var(--admin-primary);
+  }
+  
+  .hover\:bg-admin-primary:hover {
+    background-color: var(--admin-primary-hover);
+  }
+  
+  .border-admin-primary {
+    border-color: var(--admin-primary);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground));
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  @apply rounded-lg;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white;
+}
+
+.leaflet-popup-tip {
+  @apply bg-white dark:bg-gray-800;
+}
+
+/* React Toastify custom styles */
+.Toastify__toast {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white;
+}
+
+.Toastify__toast--success {
+  @apply bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400;
+}
+
+.Toastify__toast--error {
+  @apply bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400;
+}
+
+.Toastify__toast--warning {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400;
+}
+
+.Toastify__toast--info {
+  @apply bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400;
+}
+
+/* Animation improvements */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .admin-table {
+    @apply text-sm;
+  }
+  
+  .admin-sidebar {
+    @apply fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out;
+  }
+  
+  .admin-sidebar.closed {
+    @apply -translate-x-full;
+  }
+}
